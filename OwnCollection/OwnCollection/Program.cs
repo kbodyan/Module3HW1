@@ -24,6 +24,11 @@ namespace OwnCollection
             myCollection.Sort();
             Console.WriteLine(myCollection);
             Console.WriteLine();
+            myCollection[1] = 100;
+            foreach (var item in myCollection)
+            {
+                Console.Write($"{item}; ");
+            }
         }
     }
 }

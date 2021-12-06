@@ -38,12 +38,24 @@ namespace OwnCollection
             }
         }
 
+        public T this[int index]
+        {
+            get
+            {
+                return _array[index];
+            }
+            set
+            {
+                _array[index] = value;
+            }
+        }
+
         public override string ToString()
         {
             var result = string.Empty;
             for (var i = 0; i < _position; i++)
             {
-                result += _array[i].ToString() + "; ";
+                result += $"{_array[i].ToString()}; ";
             }
 
             return result;
