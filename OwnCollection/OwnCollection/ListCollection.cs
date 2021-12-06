@@ -38,6 +38,17 @@ namespace OwnCollection
             }
         }
 
+        public override string ToString()
+        {
+            var result = string.Empty;
+            for (var i = 0; i < _position; i++)
+            {
+                result += _array[i].ToString() + "; ";
+            }
+
+            return result;
+        }
+
         public void Add(T item)
         {
             if (_position >= _array.Length)
@@ -56,10 +67,8 @@ namespace OwnCollection
                 Resize(collection.Count);
             }
 
-            foreach (var item in collection)
-            {
-                Add(item);
-            }
+            collection.CopyTo(_array, _position);
+            _position += collection.Count;
         }
 
         public void Clear()
@@ -77,21 +86,26 @@ namespace OwnCollection
 
         public bool Remove(T item)
         {
-            var flags = new bool[_position];
+            var mask = new bool[_position];
             var count = 0;
             for (var i = 0; i < _position; i++)
             {
                 if (_array[i].GetHashCode() == item.GetHashCode())
                 {
-                    flags[i] = true;
+                    mask[i] = true;
                     count++;
                 }
             }
 
-            Zip(flags);
-            _position -= count;
             if (count > 0)
             {
+                Zip(mask, count);
+                _position -= count;
+                if (_array.Length - _position > 10)
+                {
+                    Resize(_position - _array.Length + 10);
+                }
+
                 return true;
             }
 
@@ -100,11 +114,12 @@ namespace OwnCollection
 
         public bool RemoveAt(int index)
         {
-            if (index <= _position)
+            if (index < _position)
             {
-                var flags = new bool[_position];
-                flags[index] = true;
-                Zip(flags);
+                var mask = new bool[_position];
+                mask[index] = true;
+                Zip(mask, 1);
+                _position--;
                 return true;
             }
 
@@ -113,7 +128,7 @@ namespace OwnCollection
 
         public void Sort()
         {
-            Array.Sort<T>(_array);
+            Array.Sort<T>(_array, 0, _position);
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -123,29 +138,20 @@ namespace OwnCollection
 
         private void Resize(int size)
         {
-            var bigger = new T[(_array.Length + size) * 2];
-            _array.CopyTo(bigger, 0);
-            _array = bigger;
+            var newArray = new T[(_array.Length + size) + 10];
+            Array.Copy(_array, newArray, _position);
+            _array = newArray;
         }
 
-        private void Zip(bool[] flags)
+        private void Zip(bool[] mask, int count)
         {
-            var tempCount = 0;
-            foreach (var item in flags)
-            {
-                if (item)
-                {
-                    tempCount++;
-                }
-            }
-
             var tempPosition = 0;
-            for (var i = 0; i < _position && tempCount > 0; i++)
+            for (var i = 0; i < _position; i++, tempPosition++)
             {
-                while (flags[i])
+                while (mask[i])
                 {
                     i++;
-                    tempCount--;
+                    count--;
                 }
 
                 if (i != tempPosition)
