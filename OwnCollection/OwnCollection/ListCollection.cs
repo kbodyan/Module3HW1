@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace OwnCollection
 {
-    public class ListCollection<T> : ICollection<T>, IEnumerable<T>, IList<T>
+    public class ListCollection<T> : ICollection<T>, IEnumerable<T>, IList<T>, ICloneable
     {
         private T[] _array;
         private int _position = 0;
@@ -17,6 +17,11 @@ namespace OwnCollection
         public ListCollection(int size)
         {
             _array = new T[size + 10];
+        }
+
+        public ListCollection(ICollection<T> collection)
+        {
+            AddRange(collection);
         }
 
         public int Capacity
@@ -53,6 +58,13 @@ namespace OwnCollection
             {
                 _array[index] = value;
             }
+        }
+
+        public object Clone()
+        {
+            var result = new ListCollection<T>(_array.Length);
+            result.AddRange(_array);
+            return result;
         }
 
         public override string ToString()
