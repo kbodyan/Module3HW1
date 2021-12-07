@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace OwnCollection
 {
-    public class ListCollection<T> : IEnumerable<T>
+    public class ListCollection<T> : ICollection<T>, IEnumerable<T>, IList<T>
     {
         private T[] _array;
         private int _position = 0;
@@ -38,6 +35,14 @@ namespace OwnCollection
             }
         }
 
+        public bool IsReadOnly
+        {
+            get
+            {
+                return _array.IsReadOnly;
+            }
+        }
+
         public T this[int index]
         {
             get
@@ -55,7 +60,7 @@ namespace OwnCollection
             var result = string.Empty;
             for (var i = 0; i < _position; i++)
             {
-                result += $"{_array[i].ToString()}; ";
+                result += $"{_array[i].ToString()}, ";
             }
 
             return result;
@@ -70,6 +75,17 @@ namespace OwnCollection
 
             _array[_position] = item;
             _position++;
+        }
+
+        public void Insert(int index, T item)
+        {
+            if (index <= _position)
+            {
+                Add(item);
+                var temp = _array[_position - 1];
+                Array.Copy(_array, index, _array, index + 1, _position - index);
+                _array[index] = temp;
+            }
         }
 
         public void AddRange(ICollection<T> collection)
@@ -124,7 +140,7 @@ namespace OwnCollection
             return false;
         }
 
-        public bool RemoveAt(int index)
+        public void RemoveAt(int index)
         {
             if (index < _position)
             {
@@ -132,10 +148,7 @@ namespace OwnCollection
                 mask[index] = true;
                 Zip(mask, 1);
                 _position--;
-                return true;
             }
-
-            return false;
         }
 
         public void Sort()
@@ -143,9 +156,35 @@ namespace OwnCollection
             Array.Sort<T>(_array, 0, _position);
         }
 
+        public bool Contains(T item)
+        {
+            return IndexOf(item) >= 0;
+        }
+
+        public int IndexOf(T item)
+        {
+            for (var i = 0; i < _position; i++)
+            {
+                if (_array[i].GetHashCode() == item.GetHashCode())
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
+        public void CopyTo(T[] array, int arrayIndex)
+        {
+            _array.CopyTo(array, arrayIndex);
+        }
+
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return _array.GetEnumerator();
+            for (var i = 0; i < _position; i++)
+            {
+                yield return _array[i];
+            }
         }
 
         private void Resize(int size)
